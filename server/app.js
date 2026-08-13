@@ -44,3 +44,58 @@ app.listen(PORT, () => {
 });
 
 module.exports = app;
+
+
+// تحديث وتأمين ملف server/app.js ليتوافق مع بيئة Replit واستوديو تطبيقات Pi
+
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+require('dotenv').config();
+
+const payloadRouter = require('./payload_router');
+const pushProvisioningRouter = require('./push_provisioning');
+
+const app = express();
+
+// الحماية المتقدمة مع السماح لمتصفح Pi واستوديو التطبيقات بالربط السحابي
+app.use(helmet({
+    contentSecurityPolicy: false // إيقاف قفل الـ CSP مؤقتاً لتسهيل حقن الـ Pi SDK داخل متصفح Pi Browser
+})); 
+
+// 🚨 هام جداً لـ Replit: السماح لجميع النطاقات الفرعية لـ minepi.com بالاتصال بخادمك
+app.use(cors({
+    origin: [
+        /minepi\.com$/, 
+        /localhost/, 
+        "https://minepi.com" // بيئة فحص اختبار تطبيقات Pi الرسمية
+    ],
+    credentials: true
+}));
+
+app.use(express.json()); 
+
+// توجيه ومزامنة مسارات معاملات بروتوكول Cobra eSIM & BIGISH-YER
+app.use('/api/v1/telecom', payloadRouter);
+app.use('/api/v1/telecom/push', pushProvisioningRouter);
+
+app.get('/health', (req, res) => {
+    res.status(200).json({
+        status: "ONLINE",
+        platform: "Replit Cloud Node Instance",
+        constraints: "Zero Floating-Point & Pi-Ecosystem CORS Allowed"
+    });
+});
+
+app.use((err, req, res, next) => {
+    console.error("[Cobra Critical Error]:", err.stack);
+    res.status(500).json({ error: "Atomic execution pipeline failure." });
+});
+
+// Replit يتطلب الاستماع للمنفذ 0.0.0.0 ليتم فتح الرابط الخارجي بنجاح
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Cobra eSIM Cloud Server is fully broadcasting via Replit on port ${PORT}`);
+});
+
+module.exports = app;
