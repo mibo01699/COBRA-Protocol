@@ -1,45 +1,39 @@
-// يتم دمج هذا الجزء داخل عقد CobraPaymentGateway.sol الأصلي محلياً
+// يتم تحديث هذا المقطع داخل العقد الذكي محلياً لتصحيح المجمعات وفق الصيغة الرسمية
 
-enum UserTier { INDIVIDUAL, ENTERPRISE_DISTRIBUTOR }
-
-struct PackageSpecification {
-    string packageId;
-    uint256 baseCostUSD;
-    UserTier tierConstraint;
-    bool isActive;
+interface IPiDexPair {
+    function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast);
 }
 
-mapping(string => PackageSpecification) public registeredPackages;
+contract CobraPaymentGateway {
+    // ... المتغيرات التأسيسية السابقة ...
 
-/**
- * @notice معالجة المقاصة الذرية بناءً على فئة الاستخدام (فردي بدقة عالية أو شركات بحجم ضخم)
- */
-function processTieredLocalClearing(
-    address walletA,
-    address walletB,
-    uint256 piAmountStroops,
-    uint256 yerAmountSubUnits,
-    string memory packageId,
-    UserTier userTier,
-    uint256 subSecondDeadline
-) external onlyOwner nonReentrantAndLocked(walletA, walletB, packageId) returns (bool) {
-    require(block.timestamp <= subSecondDeadline, "Cobra-BIGISH: Deadline exceeded");
-    
-    // التحقق من شروط فئة الشركات (مثلاً: الباقات الضخمة تتطلب حداً أدنى من المدفوعات بالأرقام الصحيحة)
-    if (userTier == UserTier.ENTERPRISE_DISTRIBUTOR) {
-        require(yerAmountSubUnits >= 500 * YER_DECIMAL_FACTOR, "Cobra-BIGISH: Enterprise bulk order below minimum threshold");
-        // تطبيق خصم الجملة التلقائي (تخفيض هامش الربح لـ 5% بدلاً من 8% لدعم ناشري الإنترنت ضد الاحتكار)
-        require(profitMargin >= 5, "Cobra-BIGISH: Protection buffer integrity breach");
+    // عناوين مجمعات السيولة الرسمية والمنفصلة تماماً على DEX Pi
+    address public piUsdPairAddress; // مجمع السيولة الرسمي [Pi/USD] لتحديد قيمة الـ Pi عالمياً
+    address public yerPiPairAddress; // مجمع السيولة الرسمي والسيادي [YER/Pi] لتحديد قيمة الـ YER محلياً
+
+    constructor(address _piToken, address _yerToken, address _piUsdPair, address _yerPiPair) {
+        owner = msg.sender;
+        piTokenAddress = _piToken;
+        yerTokenAddress = _yerToken;
+        piUsdPairAddress = _piUsdPair; // تثبيت مجمع Pi/USD
+        yerPiPairAddress = _yerPiPair; // تثبيت مجمع YER/Pi
     }
 
-    // تنفيذ عمليات السحب المتزامنة الخالية من الكسور من محفظتي المشتري
-    if (piAmountStroops > 0) {
-        require(IERC20(piTokenAddress).transferFrom(walletA, owner, piAmountStroops), "Cobra-BIGISH: Pi extraction failed");
-    }
-    if (yerAmountSubUnits > 0) {
-        require(IERC20(yerTokenAddress).transferFrom(walletB, owner, yerAmountSubUnits), "Cobra-BIGISH: YER extraction failed");
+    /**
+     * @notice قراءة السعر اللحظي الرسمي لـ Pi مقابل الدولار من مجمع [Pi/USD]
+     */
+    function getLivePiToUsdPrice() public view returns (uint256) {
+        (uint112 reserve0, uint112 reserve1, ) = IPiDexPair(piUsdPairAddress).getReserves();
+        require(reserve0 > 0 && reserve1 > 0, "Cobra-Error: Pi/USD Pool has zero liquidity");
+        return (uint256(reserve1) * 10**18) / uint256(reserve0);
     }
 
-    emit HybridClearingExecuted(walletA, piAmountStroops, yerAmountSubUnits, packageId, block.timestamp);
-    return true;
+    /**
+     * @notice قراءة السعر اللحظي الرسمي لـ YER مقابل Pi من مجمع [YER/Pi]
+     */
+    function getLiveYerToPiPrice() public view returns (uint256) {
+        (uint112 reserve0, uint112 reserve1, ) = IPiDexPair(yerPiPairAddress).getReserves();
+        require(reserve0 > 0 && reserve1 > 0, "Cobra-Error: YER/Pi Pool has zero liquidity");
+        return (uint256(reserve1) * 10**18) / uint256(reserve0); // يعيد قيمة الـ Pi لكل وحدة YER
+    }
 }
