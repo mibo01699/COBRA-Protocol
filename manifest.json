@@ -1,0 +1,16 @@
+{
+  "manifest_version": 2,
+  "name": "Cobra eSIM Node",
+  "short_name": "CobraeSIM",
+  "description": "Sovereign telecom services interface with margin-protected Pi payment rails.",
+  "version": "2.0.0",
+  "app_url": "https://repl.co",
+  "sandbox_url": "https://minepi.com",
+  "permissions": ["username", "wallet_address", "biometrics"],
+  "pi_network_config": {
+    "protocol_version": "26",
+    "required_sdk": "js-v2",
+    "enforce_kyc": true,
+    "blockchain": "Mainnet-Open-Ready"
+  }
+}
