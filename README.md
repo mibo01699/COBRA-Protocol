@@ -1,5 +1,39 @@
-COBRA (Crisis-Resilient Open Broadband & Autonomous Relay Architecture) is an open, crisis-resistant digital infrastructure framework designed to develop a flexible, multi-path connectivity layer. It integrates eSIM and telematics management and coordination, connectivity routing, automatic network path switching, emergency communications, AI-powered network state analysis, and a Pi-enabled economic settlement architecture.
+# 🐍 بروتوكول COBRA (COBRA Protocol)
+### Crisis-Resilient Open Broadband & Autonomous Relay Architecture
 
-COBRA is designed with an architecture that minimizes reliance on a single access point or operator by coordinating available and authorized connectivity sources, including mobile networks, Wi-Fi, community mesh networks, fixed-line communications, satellite links, and other interoperable connectivity paths.
+بنية تحتية رقمية مفتوحة ومعيارية لتنسيق مسارات الاتصال المتعددة وتقليل نقاط الفشل في حالات الطوارئ والضعف الهيكلي، مدمجة برمجياً ومحمية ضمن منظومة **Arabian Eagle Ecosystem (A.E.C.)**.
 
-In environments affected by crises, disasters, or weak infrastructure, COBRA aims to provide network state detection, optimal path selection, path switching, priority management, scalable operation in low-connection situations, and support for local and store-and-forward operating modes where the technical infrastructure allows.  COBRA also integrates a Pi-based economic layer for settling services, incentives, and payments related to the digital infrastructure, with the ability to connect it to other applications and systems within the A.E.C. ecosystem. COBRA does not aim to bypass telecom operators or circumvent regulatory frameworks, but rather to create a flexible and scalable coordination and connectivity layer that reduces the risks of relying on a single path and enhances the continuity of digital services through multiple connectivity sources and open integration.
+---
+
+## 🧭 المبادئ الحاكمة والنزاهة التقنية (Non-Negotiable)
+1. **مرونة الاتصال وليس الالتفاف القاتل (Resilience, Not Circumvention):** يعمل البروتوكول على تنسيق الشبكات المرخصة والمتاحة قانونياً (خلوي، واي-فاي، شبكات ميش المجتمعية). لا يدعم البروتوكول ولا يسمح بالتحايل على مشغلي الاتصالات أو تجاوز القوانين المنظمة للاتصالات الوطنية.
+2. **فصل الصلاحيات الصارم (Pi Network Boundary):** تنحصر مسؤولية شبكة Pi تماماً في طبقة التطبيق المعزولة (Sandbox dApp) لتوثيق الهوية الرقمية، والمصادقة، والتسويات المالية والفوترة. لا يملك متصفح Pi أو الـ dApp أي تحكم مباشر أو غير مباشر بمودم الهاتف أو تفعيل كروت الـ eSIM على مستوى نظام التشغيل.
+3. **الواقعية والمصداقية قبل كثرة الميزات:** أي ميزة أو تكامل برمي غير مكتمل بشكل حقيقي أو معتمد (مثل دعم الأقمار الصناعية الفعلي أو الاتصالات المباشرة غير القياسية) يتم وسمها صراحة في الشيفرة المصدرية والتوثيق كـ **"بيئة محاكاة" (Simulation Mode)** أو **"تحت التطوير برمجياً"**.
+
+---
+
+## 🏗️ المعمارية البرمجية المستهدفة (Architecture Layers)
+ينقسم البروتوكول هندسياً إلى أربع طبقات معزولة تماماً تمنع تداخل الصلاحيات:
+
+*   **طبقة الاتصال والمحولات (Connectivity Adapters Layer):** تجريد التعامل مع البطاقات والشبكات الخلوية، والواي فاي، وشبكات الميش التلقائية.
+*   **نواة الكوبرا المركزية (COBRA Core Layer):** تحتوي على محرك مراقبة الصحة الذكي (`Health Monitor`) ومحرك الفشل التبديلي الآلي المحمي (`Failover Engine`) لإعادة توجيه البيانات عند انقطاع الإشارة.
+*   **طبقة الفوترة وإدارة eSIM (Telecom & Usage Layer):** حساب استهلاك البيانات وتوليد سجلات الاستخدام الآمنة الموجهة للتسوية المالية.
+*   **طبقة التسوية والهوية المشفرة (Pi Settlement Sandbox):** واجهة ويب dApp قياسية ومستقلة لتسجيل وتأكيد المدفوعات والمعاملات المالية عبر شبكة Pi الموزعة.
+
+---
+
+## 🚀 كيفية تشغيل الفحوصات البرمجية وتكامل البيئة
+البروتوكول مجهز بأدوات فحص تلقائية لمحاكاة الأزمات وسقوط الشبكات الأساسية (Chaos Test).
+
+### 1. تشغيل محاكي الفشل التبديلي والذكاء الاصطناعي:
+```bash
+node tests/failover.test.js
+```
+*سيقوم الفحص بحقن تأخير وهمي في الشبكات الأساسية للتحقق من انتقال البيانات تلقائياً وبأمان نحو مسارات الطوارئ المتاحة دون انقطاع الخدمة.*
+
+### 2. بيئة التطوير والنشر (Deployment):
+*   يتم نشر واجهة المستخدم المعزولة في مجلد `pi-dapp-frontend/` على خوادم الويب الخاصة بـ Replit أو أي خادم dApp قياسي متوافق مع متصفح Pi.
+*   العقود الذكية للتسوية المالية متوفرة وموثقة بالكامل داخل مجلد `smart-contracts/` لاستدعائها عند إتمام دورة الفوترة بنجاح.
+
+---
+⚠️ **تنويه أمني حرصاً على سلامة برمجياتك:** يحظر تماماً كتابة أو حفظ أي مفاتيح خاصة أو أرقام سرية (API Secrets / Private Keys) داخل ملفات هذا المستودع. يتم الاعتماد كلياً على متغيرات البيئة المحمية على الخوادم المستضيفة.
