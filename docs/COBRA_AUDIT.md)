@@ -1,0 +1,16 @@
+# 📄 docs/COBRA_AUDIT.md
+## COBRA Protocol - Repository Audit & Component Classification Matrix
+
+## 1. تقييم الوضع الحالي والفجوات (Gap Analysis)
+بعد فحص النطاق البرمجي ومقارنته بالمعمارية المستهدفة، تم رصد وإغلاق الفجوات الحرجة التالية في هذه الجلسة:
+*   **محرك الفشل التبديلي (Failover Engine):** تم بناؤه وتأمينه برمجياً بشكل مستقل في `server/network_manager.js`.
+*   **ثغرة الاحتيال والازدواجية (Double Dipping Tool):** تم سدها وبناء نظام الأقفال التزامنية بربطها مع معايير المقاصة لـ `BIGISH-YER`.
+
+## 2. مصفوفة تصنيف الملفات المعتمدة (Preserve & Evolve Matrix)
+
+| المجلد أو المكون المستهدف | الطبقة المعمارية | الحالة التقنية | الإجراء الفني المنفذ |
+| :--- | :--- | :--- | :--- |
+| `config/` | COBRA Core | 🟢 Keep (احتفظ) | الحفاظ على الهيكل العام مع تشديد الرقابة لمنع رفع المفاتيح السرية. |
+| `src/telecom/` | eSIM Layer | 🟡 Refactor (أعد تنظيم) | عزل واجهات مشغلي الاتصالات وتحويلها إلى محولات ممتدة مجردة. |
+| `server/anti_fraud_engine.js` | COBRA-YER Bridge | 🔵 Integrate (دمج) | **مكون جديد:** صمام الأمان لمنع التداخل والاحتيال المالي. |
+| `src/satellite/` | Conn. Layer | 🔴 Replace (استبدل) | وسم الكود كـ `satellite_simulation` بشكل صريح منعاً للميزات الوهمية. |
