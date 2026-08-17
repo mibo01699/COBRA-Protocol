@@ -1,0 +1,13 @@
+# .replit
+# COBRA Protocol & BIGISH-YER Automated Sandbox Environment Configuration
+
+run = "node tests/system_integration.test.js"
+
+[languages.javascript]
+engine = "nodejs"
+
+[packager]
+language = "nodejs"
+
+[deployment]
+run = "node app.js" # تشغيل السيرفر الرئيسي وخلفية الواجهات المدمجة
