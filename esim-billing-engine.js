@@ -1,43 +1,87 @@
-// esim-billing-engine.js - ربط مدفوعات لعملة Pi بهامش الأرباح حصراً لحماية رأس مال الاتصالات بنسبة 100%
-class EsimProfitMarginClearingEngine {
-    /**
-     * احتساب فاتورة باقة الـ eSIM وحماية التاجر من الخسارة التشغيلية كلياً
-     * @param {BigInt} totalRetailPriceInYCOIN - سعر البيع النهائي للمستهلك بالوحدات الصغرى للعملة الاستقرارية
-     * @param {BigInt} costOfGoodsInYCOIN - التكلفة الأصلية للباقة (رأس المال المطلوب تغطيته نقدياً وبشكل كامل بـ YER)
-     * @param {BigInt} gcvPiRateInYCOIN - سعر صرف الـ Pi المتوافق عليه بناءً على الـ GCV
-     * @param {number} agreedProfitPiPercentage - النسبة المئوية المتفق عليها لاستقطاع Pi من "هامش الأرباح الصافية" فقط (0 - 100)
-     */
-    static calculateSecureInvoice(totalRetailPriceInYCOIN, costOfGoodsInYCOIN, gcvPiRateInYCOIN, agreedProfitPiPercentage) {
-        if (totalRetailPriceInYCOIN < costOfGoodsInYCOIN) {
-            throw new Error("SECURITY_ALERT: Transaction blocked. Retail price cannot be lower than operational cost!");
-        }
+const { expect } = require("chai");
+const { ethers } = require("hardhat");
+
+describe("Cobra-eSIM & BIGISH-YER Atomic Clearing Test Suite", function () {
+    let CobraGateway, gateway, mockPiToken, mockYerToken, mockDexPair;
+    let owner, walletA, walletB;
+
+    // تطبيق دقة الأرقام الصحيحة الصارمة (BigInt) لمشروع BIGISH-YER
+    const PI_DECIMALS = 10n ** 7n;   // 7 خانات عشرية لـ Pi
+    const YER_DECIMALS = 10n ** 10n; // 10 خانات عشرية لـ YER
+
+    beforeEach(async function () {
+        [owner, walletA, walletB] = await ethers.getSigners();
+
+        // نشر رموز اختبارية مطابقة للدقة القياسية
+        const MockToken = await ethers.getContractFactory("ERC20Mock");
+        mockPiToken = await MockToken.deploy("Pi Network", "PI", 7);
+        mockYerToken = await MockToken.deploy("Yemen Stabilized", "YER", 10);
+
+        // محاكاة مجمع السيولة لـ AMM
+        const MockPair = await ethers.getContractFactory("PiDexPairMock");
+        mockDexPair = await MockPair.deploy();
+
+        // نشر بوابة المقاصة الرئيسية
+        CobraGateway = await ethers.getContractFactory("CobraPaymentGateway");
+        gateway = await CobraGateway.deploy(
+            mockPiToken.address,
+            mockYerToken.address,
+            mockDexPair.address
+        );
+    });
+
+    it("يجب أن يرفض المعاملة إذا انتهت صلاحية الثانية الذرية", async function () {
+        const pastDeadline = (await ethers.provider.getBlock("latest")).timestamp - 10;
+
+        await expect(
+            gateway.processLocalEsimClearing(
+                walletA.address,
+                walletB.address,
+                100n * PI_DECIMALS,
+                50n * YER_DECIMALS,
+                "pkg_global_5gb",
+                pastDeadline
+            )
+        ).to.be.revertedWith("Cobra-BIGISH: Atomic second deadline exceeded");
+    });
+
+    it("يجب أن يمنع الإنفاق المزدوج في نفس الثانية الزمنية", async function () {
+        const currentBlock = await ethers.provider.getBlock("latest");
+        const strictDeadline = currentBlock.timestamp + 30;
+
+        // منح صلاحية السحب للعقد الذكي
+        await mockPiToken.connect(walletA).approve(gateway.address, 1000n * PI_DECIMALS);
+        await mockYerToken.connect(walletB).approve(gateway.address, 1000n * YER_DECIMALS);
+
+        // تنفيذ المعاملة الأولى بنجاح
+        await gateway.processLocalEsimClearing(
+            walletA.address,
+            walletB.address,
+            10n * PI_DECIMALS,
+            5n * YER_DECIMALS,
+            "pkg_yemen_10gb",
+            strictDeadline
+        );
+
+        // محاولة تكرار نفس المعاملة في نفس الثانية (يجب أن تفشل)
+        await expect(
+            gateway.processLocalEsimClearing(
+                walletA.address,
+                walletB.address,
+                10n * PI_DECIMALS,
+                5n * YER_DECIMALS,
+                "pkg_yemen_10gb",
+                strictDeadline
+            )
+        ).to.be.revertedWith("Cobra-BIGISH: Anti-Double-Dipping triggered");
+    });
+
+    it("يجب أن يحسب السعر السيادي من AMM بدون كسور عشرية", async function () {
+        // محاكاة احتياطيات المجمع: 1000 Pi مقابل 5000 YER
+        await mockDexPair.setReserves(1000n * PI_DECIMALS, 5000n * YER_DECIMALS);
         
-        // 1. استخراج صافي هامش الربح بدقة BigInt الصارمة (سعر البيع - التكلفة المباشرة)
-        const netProfitMargin = totalRetailPriceInYCOIN - costOfGoodsInYCOIN;
-        const profitRatio = BigInt(agreedProfitPiPercentage);
-
-        // 2. حساب حصة الـ Pi المقتطعة من داخل هامش الأرباح الصافية فقط
-        const piShareFromProfit = (netProfitMargin * profitRatio) / 100n;
-        
-        // 3. بقية هامش الأرباح المتبقية التي ستسدد بالعملة المحلية المستقرة YER
-        const yerShareFromProfit = netProfitMargin - piShareFromProfit;
-
-        // 4. الإجمالي النهائي المطلوب سداده كاش بـ YER (التكلفة الأصلية كاملة لتغطية رأس المال + حصة أرباح الـ YER)
-        const finalYerRequiredAmount = costOfGoodsInYCOIN + yerShareFromProfit;
-
-        // 5. تحويل حصة الـ Pi المستقطعة من الأرباح إلى وحدات صغرى للبلوكشين (Stroops = 10^7) بناءً على سعر GCV
-        const piPrecision = 10000000n;
-        let finalPiRequiredInStroops = 0n;
-
-        if (piShareFromProfit > 0n && gcvPiRateInYCOIN > 0n) {
-            finalPiRequiredInStroops = (piShareFromProfit * piPrecision) / gcvPiRateInYCOIN;
-        }
-
-        return {
-            auditStatus: "ZERO_LOSS_GUARANTEED_PROFIT_MARGIN_BOUNDED",
-            yerTotalToCollect: finalYerRequiredAmount.toString(),       // استرداد وتأمين رأس مال باقة الـ eSIM كاملاً بـ YER
-            piTotalToCollectStroops: finalPiRequiredInStroops.toString() // حصة الـ Pi المأخوذة من الربح الصافي فقط بقيمة GCV
-        };
-    }
-}
-module.exports = EsimProfitMarginClearingEngine;
+        const price = await gateway.getSovereignAmmPrice();
+        // السعر المتوقع: (5000 * 10^10) / (1000 * 10^7) = 50000 (وحدة YER لكل Pi)
+        expect(price).to.equal(50000n * YER_DECIMALS / PI_DECIMALS);
+    });
+});
