@@ -1,0 +1,64 @@
+// server/pricing_engine.js
+// COBRA Protocol & BIGISH-YER Unified Pricing Engine (Strict BigInt Fixed-Point Arithmetic)
+
+class CobraPricingEngine {
+    constructor() {
+        // الثوابت الرياضية القياسية المبنية على مواصفات مستودع BIGISH-YER
+        this.PI_DECIMALS = 10000000n;        // 10^7 Stroops
+        this.YER_DECIMALS = 10000000000n;    // 10^10 Sovereign Sub-units
+        
+        this.PROFIT_MARGIN_PCT = 12n;        // هامش ربح 12% ثابت
+        this.PI_GCV_USD = 314159n;           // قيمة الإجماع العالمي لـ Pi بالدولار الصحيح
+
+        // محاكاة مجمع السيولة الثابت الصارم (X * Y = K) من ملف app-replit-ext.js
+        this.ammPool = {
+            usdt: 100000n,                    // السيولة المقومة بالدولار
+            yerSubUnits: 25000000000000n      // السيولة بالريال اليمني مضروبة في 10^10
+        };
+    }
+
+    // حساب سعر صرف YER لكل 1 دولار عبر آلية AMM (BigInt فقط)
+    getYerRateViaAMM() {
+        // السعر = حجم سيولة YER وحدات فرعية / حجم سيولة USDT
+        return this.ammPool.yerSubUnits / this.ammPool.usdt; 
+    }
+
+    // حساب الهيكل المالي الكامل للباقة بدون أي كسور عشرية عائمة
+    calculatePackagePrice(baseCostInUsdt) {
+        const costBigInt = BigInt(baseCostInUsdt);
+
+        // 1. إضافة نسبة أرباح الـ 12% المعتمدة للمنظومة
+        const profit = (costBigInt * this.PROFIT_MARGIN_PCT) / 100n;
+        const totalTargetPriceUsdt = costBigInt + profit;
+
+        // 2. تقسيم الباقة: 50% بـ Pi وفق قيم الـ GCV
+        const halfUsdt = totalTargetPriceUsdt / 2n;
+        
+        // حساب المطلوب من عملة Pi بالـ Stroops (نضرب في التجريد العشري أولاً ثم نقسم لمنع الكسر)
+        const requiredPiStroops = (halfUsdt * this.PI_DECIMALS) / this.PI_GCV_USD;
+
+        // 3. الجزء المتبقي 50%: يتم تحصيله برمز YER وفق سعر الـ AMM الحالي
+        const yerRate = this.getYerRateViaAMM();
+        const requiredYerSubUnits = halfUsdt * yerRate; // القيمة الإجمالية بالوحدات السيادية الفرعية
+
+        return {
+            baseCostUsdt: costBigInt.toString(),
+            totalPriceUsdt: totalTargetPriceUsdt.toString(),
+            profitGeneratedUsdt: profit.toString(),
+            paymentSplit: {
+                piWallet: {
+                    rawAmountStroops: requiredPiStroops.toString(),
+                    displayAmount: (Number(requiredPiStroops) / 10000000).toFixed(7),
+                    standard: "GCV ($314,159)"
+                },
+                yerWallet: {
+                    rawAmountSubUnits: requiredYerSubUnits.toString(),
+                    displayAmount: (Number(requiredYerSubUnits) / 10000000000).toFixed(2),
+                    standard: "BIGISH-YER AMM Native Pool"
+                }
+            }
+        };
+    }
+}
+
+module.exports = CobraPricingEngine;
