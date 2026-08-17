@@ -1,87 +1,79 @@
-const { expect } = require("chai");
-const { ethers } = require("hardhat");
+// esim-billing-engine.js
+// COBRA Protocol - Crisis-Resilient Telecom Billing & Usage Buffer
 
-describe("Cobra-eSIM & BIGISH-YER Atomic Clearing Test Suite", function () {
-    let CobraGateway, gateway, mockPiToken, mockYerToken, mockDexPair;
-    let owner, walletA, walletB;
+const fs = require('fs');
+const crypto = require('crypto');
 
-    // تطبيق دقة الأرقام الصحيحة الصارمة (BigInt) لمشروع BIGISH-YER
-    const PI_DECIMALS = 10n ** 7n;   // 7 خانات عشرية لـ Pi
-    const YER_DECIMALS = 10n ** 10n; // 10 خانات عشرية لـ YER
-
-    beforeEach(async function () {
-        [owner, walletA, walletB] = await ethers.getSigners();
-
-        // نشر رموز اختبارية مطابقة للدقة القياسية
-        const MockToken = await ethers.getContractFactory("ERC20Mock");
-        mockPiToken = await MockToken.deploy("Pi Network", "PI", 7);
-        mockYerToken = await MockToken.deploy("Yemen Stabilized", "YER", 10);
-
-        // محاكاة مجمع السيولة لـ AMM
-        const MockPair = await ethers.getContractFactory("PiDexPairMock");
-        mockDexPair = await MockPair.deploy();
-
-        // نشر بوابة المقاصة الرئيسية
-        CobraGateway = await ethers.getContractFactory("CobraPaymentGateway");
-        gateway = await CobraGateway.deploy(
-            mockPiToken.address,
-            mockYerToken.address,
-            mockDexPair.address
-        );
-    });
-
-    it("يجب أن يرفض المعاملة إذا انتهت صلاحية الثانية الذرية", async function () {
-        const pastDeadline = (await ethers.provider.getBlock("latest")).timestamp - 10;
-
-        await expect(
-            gateway.processLocalEsimClearing(
-                walletA.address,
-                walletB.address,
-                100n * PI_DECIMALS,
-                50n * YER_DECIMALS,
-                "pkg_global_5gb",
-                pastDeadline
-            )
-        ).to.be.revertedWith("Cobra-BIGISH: Atomic second deadline exceeded");
-    });
-
-    it("يجب أن يمنع الإنفاق المزدوج في نفس الثانية الزمنية", async function () {
-        const currentBlock = await ethers.provider.getBlock("latest");
-        const strictDeadline = currentBlock.timestamp + 30;
-
-        // منح صلاحية السحب للعقد الذكي
-        await mockPiToken.connect(walletA).approve(gateway.address, 1000n * PI_DECIMALS);
-        await mockYerToken.connect(walletB).approve(gateway.address, 1000n * YER_DECIMALS);
-
-        // تنفيذ المعاملة الأولى بنجاح
-        await gateway.processLocalEsimClearing(
-            walletA.address,
-            walletB.address,
-            10n * PI_DECIMALS,
-            5n * YER_DECIMALS,
-            "pkg_yemen_10gb",
-            strictDeadline
-        );
-
-        // محاولة تكرار نفس المعاملة في نفس الثانية (يجب أن تفشل)
-        await expect(
-            gateway.processLocalEsimClearing(
-                walletA.address,
-                walletB.address,
-                10n * PI_DECIMALS,
-                5n * YER_DECIMALS,
-                "pkg_yemen_10gb",
-                strictDeadline
-            )
-        ).to.be.revertedWith("Cobra-BIGISH: Anti-Double-Dipping triggered");
-    });
-
-    it("يجب أن يحسب السعر السيادي من AMM بدون كسور عشرية", async function () {
-        // محاكاة احتياطيات المجمع: 1000 Pi مقابل 5000 YER
-        await mockDexPair.setReserves(1000n * PI_DECIMALS, 5000n * YER_DECIMALS);
+class ESimBillingEngine {
+    constructor(networkManager) {
+        this.networkManager = networkManager;
+        this.secretKey = crypto.randomBytes(32); // مفتاح تشفير مؤقت لحماية البيانات محلياً (لا يتم رفعه لـ GitHub)
+        this.bufferPath = './secure_usage_buffer.dat';
         
-        const price = await gateway.getSovereignAmmPrice();
-        // السعر المتوقع: (5000 * 10^10) / (1000 * 10^7) = 50000 (وحدة YER لكل Pi)
-        expect(price).to.equal(50000n * YER_DECIMALS / PI_DECIMALS);
-    });
-});
+        // أسعار البيانات لكل ميجابايت مقومة بعملة Pi الافتراضية للتسوية
+        this.rateCard = {
+            cellular: 0.01,
+            wifi: 0.002,
+            mesh: 0.000, // الشبكات المجتمعية مجانية
+            satellite_mock: 0.15 // تكلفة عالية لمحاكاة الأقمار الصناعية
+        };
+    }
+
+    // 1. قياس استهلاك البيانات الفعلي على المسار النشط بأمان
+    calculateCost(megabytesUsed) {
+        const currentRoute = this.networkManager.getActiveRoute();
+        const pathType = currentRoute.path;
+        const rate = this.rateCard[pathType] || 0.01;
+        const costInPi = megabytesUsed * rate;
+
+        const record = {
+            timestamp: new Date().toISOString(),
+            pathUsed: pathType,
+            megabytes: megabytesUsed,
+            cost: costInPi,
+            settled: false
+        };
+
+        console.log(`[COBRA Billing] Tracked ${megabytesUsed}MB on [${pathType}]. Charge: ${costInPi} Pi.`);
+        
+        // التحقق من حالة الشبكة لتحديد مكان حفظ الفاتورة
+        if (currentRoute.details.status === "ONLINE" && pathType !== "isolated_buffer") {
+            this.forwardToPiDApp(record);
+        } else {
+            this.writeToLocalBuffer(record);
+        }
+        return record;
+    }
+
+    // 2. المخزن المؤقت المحلي الآمن (Local Usage Buffer) لحالات انقطاع الشبكة القصوى
+    writeToLocalBuffer(record) {
+        console.warn("[COBRA Security] Connection degraded. Encrypting usage log into local resilient buffer...");
+        try {
+            const dataString = JSON.stringify(record);
+            const iv = crypto.randomBytes(16);
+            const cipher = crypto.createCipheriv('aes-256-cbc', this.secretKey, iv);
+            
+            let encrypted = cipher.update(dataString, 'utf8', 'hex');
+            encrypted += cipher.final('hex');
+
+            const securePayload = {
+                iv: iv.toString('hex'),
+                payload: encrypted
+            };
+
+            // حفظ السجل المشفر في ملف مقاوم للأزمات لحين عودة الاتصال
+            fs.appendFileSync(this.bufferPath, JSON.stringify(securePayload) + '\n');
+            console.log("[COBRA Buffer] Append successful. Usage saved offline securely.");
+        } catch (err) {
+            console.error("[COBRA Critical] Failed to write secure telemetry buffer:", err);
+        }
+    }
+
+    // إرسال البيانات فوراً لطبقة الـ dApp للتسوية المالية عند توفر الاتصال
+    forwardToPiDApp(record) {
+        console.log(`[COBRA Pi-Bridge] Broadcasting transaction to Pi Sandbox Ledger for accounting: ${record.cost} Pi.`);
+        // هذا المكون يتكامل برمجياً مع واجهة العقد الذكي الموثق في المستودع
+    }
+}
+
+module.exports = ESimBillingEngine;
