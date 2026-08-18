@@ -119,5 +119,26 @@ app.get('/api/settlement/history', (req, res) => {
     }
 });
 
+// 5. واجهة برمجة التطبيقات (API) لبث إحصائيات البيانات الرسومية الحية لحجم استهلاك المسارات
+app.get('/api/network/telemetry-chart', (req, res) => {
+    try {
+        const currentRoute = networkManager.getActiveRoute();
+        
+        // إعداد تيار بيانات زمني رسومي محاكى بشفافية ومصداقية (Simulation Mode)
+        // يعتمد الحساب بالكامل على قيم صحيحة BigInt لتأمين استهلاك الفوترة
+        const telemetryData = {
+            timestamp: new Date().toLocaleTimeString(),
+            active_path: currentRoute.path,
+            latency: currentRoute.details.latency,
+            // محاكاة حجم البيانات الممررة بالميجابايت (BigInt محول لنصوص لمنع الكسر العائم)
+            bandwidth_used_mb: (45n + BigInt(Math.floor(Math.random() * 15))).toString(),
+            is_simulation: currentRoute.details.isSimulation
+        };
+        
+        res.status(200).json({ success: true, telemetry: telemetryData });
+    } catch (error) {
+        res.status(500).json({ success: false, error: "Failed to fetch graphic telemetry data" });
+    }
+});
 
 
