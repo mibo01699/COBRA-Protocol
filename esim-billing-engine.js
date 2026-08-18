@@ -1,5 +1,5 @@
 // esim-billing-engine.js
-// COBRA Protocol - Crisis-Resilient Telecom Billing & Usage Buffer
+// COBRA Protocol & BIGISH-YER - Lightweight Resilient Billing Engine for Free Replit Tier
 
 const fs = require('fs');
 const crypto = require('crypto');
@@ -7,36 +7,36 @@ const crypto = require('crypto');
 class ESimBillingEngine {
     constructor(networkManager) {
         this.networkManager = networkManager;
-        this.secretKey = crypto.randomBytes(32); // مفتاح تشفير مؤقت لحماية البيانات محلياً (لا يتم رفعه لـ GitHub)
+        this.secretKey = crypto.randomBytes(32); 
         this.bufferPath = './secure_usage_buffer.dat';
         
-        // أسعار البيانات لكل ميجابايت مقومة بعملة Pi الافتراضية للتسوية
-        this.rateCard = {
-            cellular: 0.01,
-            wifi: 0.002,
-            mesh: 0.000, // الشبكات المجتمعية مجانية
-            satellite_mock: 0.15 // تكلفة عالية لمحاكاة الأقمار الصناعية
+        // التسعير بالوحدات الصارمة لمنع الكسر العائم (مضروبة في 10^10 للامتثال لـ BIGISH-YER)
+        this.rateCardSubUnits = {
+            cellular: 100000000n,    // 0.01 YER
+            wifi: 20000000n,         // 0.002 YER
+            mesh: 0n,                // مجاني
+            satellite_mock: 1500000000n // 0.15 YER محاكاة
         };
     }
 
-    // 1. قياس استهلاك البيانات الفعلي على المسار النشط بأمان
     calculateCost(megabytesUsed) {
         const currentRoute = this.networkManager.getActiveRoute();
         const pathType = currentRoute.path;
-        const rate = this.rateCard[pathType] || 0.01;
-        const costInPi = megabytesUsed * rate;
+        const rate = this.rateCardSubUnits[pathType] || 100000000n;
+        
+        // حساب التكلفة الصافية بـ BigInt
+        const costSubUnits = BigInt(megabytesUsed) * rate;
 
         const record = {
             timestamp: new Date().toISOString(),
             pathUsed: pathType,
-            megabytes: megabytesUsed,
-            cost: costInPi,
+            megabytes: megabytesUsed.toString(),
+            costSubUnits: costSubUnits.toString(),
             settled: false
         };
 
-        console.log(`[COBRA Billing] Tracked ${megabytesUsed}MB on [${pathType}]. Charge: ${costInPi} Pi.`);
+        console.log(`[COBRA Billing] Encoded ${megabytesUsed}MB on [${pathType}]. SubUnits: ${costSubUnits.toString()}`);
         
-        // التحقق من حالة الشبكة لتحديد مكان حفظ الفاتورة
         if (currentRoute.details.status === "ONLINE" && pathType !== "isolated_buffer") {
             this.forwardToPiDApp(record);
         } else {
@@ -45,9 +45,7 @@ class ESimBillingEngine {
         return record;
     }
 
-    // 2. المخزن المؤقت المحلي الآمن (Local Usage Buffer) لحالات انقطاع الشبكة القصوى
     writeToLocalBuffer(record) {
-        console.warn("[COBRA Security] Connection degraded. Encrypting usage log into local resilient buffer...");
         try {
             const dataString = JSON.stringify(record);
             const iv = crypto.randomBytes(16);
@@ -56,23 +54,17 @@ class ESimBillingEngine {
             let encrypted = cipher.update(dataString, 'utf8', 'hex');
             encrypted += cipher.final('hex');
 
-            const securePayload = {
-                iv: iv.toString('hex'),
-                payload: encrypted
-            };
-
-            // حفظ السجل المشفر في ملف مقاوم للأزمات لحين عودة الاتصال
+            const securePayload = { iv: iv.toString('hex'), payload: encrypted };
+            
+            // استخدام appendFileSync الخفيف لحفظ الذاكرة في Replit المجاني
             fs.appendFileSync(this.bufferPath, JSON.stringify(securePayload) + '\n');
-            console.log("[COBRA Buffer] Append successful. Usage saved offline securely.");
         } catch (err) {
-            console.error("[COBRA Critical] Failed to write secure telemetry buffer:", err);
+            console.error("[COBRA Critical] Buffer storage failure:", err);
         }
     }
 
-    // إرسال البيانات فوراً لطبقة الـ dApp للتسوية المالية عند توفر الاتصال
     forwardToPiDApp(record) {
-        console.log(`[COBRA Pi-Bridge] Broadcasting transaction to Pi Sandbox Ledger for accounting: ${record.cost} Pi.`);
-        // هذا المكون يتكامل برمجياً مع واجهة العقد الذكي الموثق في المستودع
+        console.log(`[A.E.C. Bridge] Relaying transaction to BIGISH-YER settlement Interlock.`);
     }
 }
 
