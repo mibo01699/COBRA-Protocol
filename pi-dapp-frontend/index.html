@@ -117,3 +117,81 @@
         }
     </script>
 
+    <!-- إضافة مكتبة الرسوم البيانية القياسية المعزولة برمجياً في بيئة الـ Sandbox -->
+    <script src="https://jsdelivr.net"></script>
+
+    <!-- بطاقة المراقبة الرسومية المتقدمة للبيانات والشبكة (COBRA Telemetry Dashboard) -->
+    <div class="card" style="max-width: 600px;">
+        <h3>📈 مراقبة حركة البيانات والمسارات الحية</h3>
+        <p style="font-size: 0.85rem; color: #a8a29e;">الرسم البياني يوضح حجم تيار البيانات الممررة (MB) عبر المسار النشط</p>
+        <div style="position: relative; height:200px; width:100%">
+            <canvas id="cobraTelemetryChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // تهيئة محرك الرسم البياني الرسومي في الواجهة المعزولة
+        const ctx = document.getElementById('cobraTelemetryChart').getContext('2d');
+        const telemetryChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [], // الزمن الحركي
+                datasets: [{
+                    label: 'البيانات المستهلكة (MB)',
+                    data: [],
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
+                    y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' }, beginAtZero: true }
+                },
+                plugins: { legend: { labels: { color: '#f8fafc' } } }
+            }
+        });
+
+        // دالة التحديث الحركي الدوري للرسم البياني من خادم الـ API المركزي المحدث
+        async function updateLiveChartTelemetry() {
+            try {
+                const response = await fetch('/api/network/telemetry-chart');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const tel = data.telemetry;
+                    
+                    // تحديث مؤشرات العرض الرسومي
+                    if (telemetryChart.data.labels.length > 7) {
+                        telemetryChart.data.labels.shift();
+                        telemetryChart.data.datasets[0].data.shift();
+                    }
+                    
+                    telemetryChart.data.labels.push(tel.timestamp);
+                    telemetryChart.data.datasets[0].data.push(Number(tel.bandwidth_used_mb));
+                    
+                    // تغيير لون مؤشر تيار الرسم البياني إذا دخل في وضع المحاكاة أو الطوارئ الشاملة
+                    if (tel.is_simulation) {
+                        telemetryChart.data.datasets[0].borderColor = '#f59e0b'; // برتقالي للتنبيه والمصداقية
+                        telemetryChart.data.datasets[0].label = 'بيانات محاكاة الطوارئ (MB)';
+                    } else {
+                        telemetryChart.data.datasets[0].borderColor = '#10b981'; // أخضر مستقر وطبيعي
+                        telemetryChart.data.datasets[0].label = 'البيانات المستهلكة (MB)';
+                    }
+                    
+                    telemetryChart.update();
+                }
+            } catch (err) {
+                console.error("[Chart Sync Error] Telemetry logging failure:", err);
+            }
+        }
+
+        // تشغيل التحديث التلقائي المستمر للرسم البياني كل 4 ثوانٍ بشكل آمن
+        setInterval(updateLiveChartTelemetry, 4000);
+    </script>
+
