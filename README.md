@@ -1,4 +1,4 @@
-# 🐍 بروتوكول COBRA (COBRA Protocol)
+# بروتوكول COBRA (COBRA Protocol)
 ### Crisis-Resilient Open Broadband & Autonomous Relay Architecture
 
 بنية تحتية رقمية مفتوحة ومعيارية لتنسيق مسارات الاتصال المتعددة وتقليل نقاط الفشل في حالات الطوارئ والضعف الهيكلي، مدمجة برمجياً ومحمية ضمن منظومة **Arabian Eagle Ecosystem (A.E.C.)**.
