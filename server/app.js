@@ -1,144 +1,98 @@
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-require('dotenv').config();
-
-// استيراد المسارات التأسيسية لبروتوكول المقاصة والتثبيت التلقائي دون تدخل بشري
-const payloadRouter = require('./payload_router');
-const pushProvisioningRouter = require('./push_provisioning');
-
-const app = express();
-
-// 1. برمجيات الحماية لبيئة الخادم المغلقة والمشفرة محلياً
-app.use(helmet()); 
-app.use(cors());   
-app.use(express.json()); 
-
-// 2. توجيه ومزامنة مسارات معاملات بروتوكول Cobra eSIM & BIGISH-YER
-app.use('/api/v1/telecom', payloadRouter);
-app.use('/api/v1/telecom/push', pushProvisioningRouter); // المسار الجديد للتنشيط التلقائي بنقرة واحدة
-
-// 3. نقطة فحص الحالة الصحية للعقد البرمجي المحلي
-app.get('/health', (req, res) => {
-    res.status(200).json({
-        status: "ONLINE",
-        protocol: "Cobra-eSIM & BIGISH-YER Gateway",
-        timestamp: Date.now(),
-        constraints: "Zero Floating-Point & Zero-Touch Push Active"
-    });
-});
-
-// إدارة ومعالجة الأخطاء الطارئة لحماية سلامة الأصول المالية في المحافظ
-app.use((err, req, res, next) => {
-    console.error("[Cobra Critical Error]:", err.stack);
-    res.status(500).json({ error: "Atomic execution pipeline failure. Safe state preserved." });
-});
-
-const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => {
-    console.log(`==================================================`);
-    console.log(`🐍 Cobra eSIM Secure Infrastructure Node is Active`);
-    console.log(`📡 Local Port: http://localhost:${PORT}`);
-    console.log(`🔒 Environment: PRIVATE CLOSED SOURCE (BIGISH-YER Mapped)`);
-    console.log(`==================================================`);
-});
-
-module.exports = app;
-
-
-// تحديث وتأمين ملف server/app.js ليتوافق مع بيئة Replit واستوديو تطبيقات Pi
+// server/app.js (تحديث برمي شامل للامتثال للمنظومة الخماسية 100%)
+// 🦅 ARABIAN EAGLE ECOSYSTEM (A.E.C.) - SECURED CENTRAL INTEGRATION DAEMON
 
 const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-require('dotenv').config();
+const path = require('path');
 
-const payloadRouter = require('./payload_router');
-const pushProvisioningRouter = require('./push_provisioning');
+// استدعاء مكونات ومحولات الربط للمشاريع الخمسة
+const AIResilientNetworkManager = require('./network_manager');
+const CobraPricingEngine = require('./pricing_engine');
+const DualWalletGateway = require('./dual_wallet_gateway');
+const CobraAntiFraudEngine = require('./anti_fraud_engine');
+const GavLogisticsAdapter = require('./gav_logistics_adapter');
+const AECInterlockCore = require('./aec_interlock_core');
 
 const app = express();
-
-// الحماية المتقدمة مع السماح لمتصفح Pi واستوديو التطبيقات بالربط السحابي
-app.use(helmet({
-    contentSecurityPolicy: false // إيقاف قفل الـ CSP مؤقتاً لتسهيل حقن الـ Pi SDK داخل متصفح Pi Browser
-})); 
-
-// 🚨 هام جداً لـ Replit: السماح لجميع النطاقات الفرعية لـ minepi.com بالاتصال بخادمك
-app.use(cors({
-    origin: [
-        /minepi\.com$/, 
-        /localhost/, 
-        "https://minepi.com" // بيئة فحص اختبار تطبيقات Pi الرسمية
-    ],
-    credentials: true
-}));
-
-app.use(express.json()); 
-
-// توجيه ومزامنة مسارات معاملات بروتوكول Cobra eSIM & BIGISH-YER
-app.use('/api/v1/telecom', payloadRouter);
-app.use('/api/v1/telecom/push', pushProvisioningRouter);
-
-app.get('/health', (req, res) => {
-    res.status(200).json({
-        status: "ONLINE",
-        platform: "Replit Cloud Node Instance",
-        constraints: "Zero Floating-Point & Pi-Ecosystem CORS Allowed"
-    });
-});
-
-app.use((err, req, res, next) => {
-    console.error("[Cobra Critical Error]:", err.stack);
-    res.status(500).json({ error: "Atomic execution pipeline failure." });
-});
-
-// Replit يتطلب الاستماع للمنفذ 0.0.0.0 ليتم فتح الرابط الخارجي بنجاح
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Cobra eSIM Cloud Server is fully broadcasting via Replit on port ${PORT}`);
+
+app.use(express.json());
+
+// تهيئة المحركات المركزية وتأمينها
+const networkManager = new AIResilientNetworkManager();
+const pricingEngine = new CobraPricingEngine();
+const walletGateway = new DualWalletGateway(pricingEngine);
+const fraudEngine = new CobraAntiFraudEngine();
+const interlockCore = new AECInterlockCore();
+const gavAdapter = new GavLogisticsAdapter(interlockCore);
+
+// 1. تخديم واجهات dApp المعزولة لمنظومة النسر العربي (COBRA, AJYAL, GAV)
+app.use(express.static(path.join(__dirname, '../pi-dapp-frontend')));
+
+// ─── [تعديل حرج لحماية المقاصة المتقاطعة للمنظومة الخماسية] ───
+
+// [بوابة AJYAL التعليمية]: نقطة نهاية معالجة اشتراكات الطلاب دون كسور عائمة
+app.post('/api/aec/ajyal/subscribe', (req, res) => {
+    const { user_id, course_id, package_price_usdt } = req.body;
+    if (!user_id || !course_id || !package_price_usdt) {
+        return res.status(400).json({ success: false, error: "Missing AJYAL payload parameters" });
+    }
+    try {
+        const clearingData = interlockCore.processAjyalSubscriptionClearing(user_id, course_id, Number(package_price_usdt));
+        res.status(200).json({ success: true, component: "AJYAL", clearing: clearingData });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// [بوابة suppliers-auction]: تقديم العروض والمناقصات محمي تماماً ضد هجمات الازدواجية المالية
+app.post('/api/aec/auction/bid', async (req, res) => {
+    const { auction_id, supplier_id, bid_amount_usdt } = req.body;
+    if (!auction_id || !supplier_id || !bid_amount_usdt) {
+        return res.status(400).json({ success: false, error: "Missing Auction payload parameters" });
+    }
+    try {
+        // حساب تسعير المقاصة بالـ BigInt
+        const rawUsdt = BigInt(bid_amount_usdt);
+        const yerRate = 250000n; 
+        const totalYerSubUnits = rawUsdt * yerRate;
+
+        // توليد البصمة الرقمية والتحقق الفوري لمنع الـ Double Dipping المتقاطع مع المحفظة السيادية
+        const txFingerprint = fraudEngine.generateTransactionFingerprint(supplier_id, auction_id, 0n, totalYerSubUnits);
+        const isLockAcquired = fraudEngine.acquireLock(txFingerprint);
+        
+        if (!isLockAcquired) {
+            return res.status(423).json({ success: false, error: "Concurrent double bidding detected and blocked by A.E.C. Guard!" });
+        }
+
+        const clearingResult = interlockCore.processAuctionBidClearing(auction_id, supplier_id, Number(bid_amount_usdt));
+        fraudEngine.releaseAndFinalizeLock(txFingerprint, true); // إطلاق القفل بعد الأمان
+
+        res.status(200).json({ success: true, component: "suppliers-auction", receipt: clearingResult });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// [بوابة GAV التجارية واللوجستيات]: حساب تكلفة الشحن وحظر تسرب الـ Float
+app.post('/api/aec/gav/shipping', (req, res) => {
+    const { weight_grams, distance_km } = req.body;
+    if (!weight_grams || !distance_km) {
+        return res.status(400).json({ success: false, error: "Missing GAV logistics parameters" });
+    }
+    try {
+        const logisticsReceipt = gavAdapter.calculateSecureShippingFee(weight_grams, distance_km);
+        res.status(200).json({ success: true, component: "GAV-The-Incense-Route", logistics: logisticsReceipt });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// تشغيل الخادم المركزي الشامل للمنظومة
+app.listen(PORT, () => {
+    console.log(`================================================================`);
+    console.log(`🦅 A.E.C. UNIFIED MONOLITH SERVER ONLINE ON PORT ${PORT}`);
+    console.log(`🔒 ALL 5 REPOSITORIES INTERLOCKED SECURELY WITH ZERO FLOAT LEAKS`);
+    console.log(`================================================================`);
 });
 
 module.exports = app;
-
-// 4. واجهة برمجة التطبيقات (API) لاسترجاع سجل المعاملات التاريخية والمقاصة الرقمية الموحدة
-app.get('/api/settlement/history', (req, res) => {
-    try {
-        // قراءة سجل المقاصة الآمن من بوابة المحفظة المشتركة لـ BIGISH-YER
-        const history = walletGateway.transactionLedger.map(tx => ({
-            tx_id: tx.txId,
-            timestamp: tx.timestamp,
-            status: tx.status,
-            pi_display: (Number(tx.financials.piStroops) / 10000000).toFixed(7),
-            yer_display: (Number(tx.financials.yerSubUnits) / 10000000000).toFixed(2),
-            is_valid: true // تأكيد السلامة الهيكلية ضد الازدواجية المكررة
-        }));
-        
-        res.status(200).json({ success: true, ledger: history });
-    } catch (error) {
-        res.status(500).json({ success: false, error: "Failed to retrieve clearing history" });
-    }
-});
-
-// 5. واجهة برمجة التطبيقات (API) لبث إحصائيات البيانات الرسومية الحية لحجم استهلاك المسارات
-app.get('/api/network/telemetry-chart', (req, res) => {
-    try {
-        const currentRoute = networkManager.getActiveRoute();
-        
-        // إعداد تيار بيانات زمني رسومي محاكى بشفافية ومصداقية (Simulation Mode)
-        // يعتمد الحساب بالكامل على قيم صحيحة BigInt لتأمين استهلاك الفوترة
-        const telemetryData = {
-            timestamp: new Date().toLocaleTimeString(),
-            active_path: currentRoute.path,
-            latency: currentRoute.details.latency,
-            // محاكاة حجم البيانات الممررة بالميجابايت (BigInt محول لنصوص لمنع الكسر العائم)
-            bandwidth_used_mb: (45n + BigInt(Math.floor(Math.random() * 15))).toString(),
-            is_simulation: currentRoute.details.isSimulation
-        };
-        
-        res.status(200).json({ success: true, telemetry: telemetryData });
-    } catch (error) {
-        res.status(500).json({ success: false, error: "Failed to fetch graphic telemetry data" });
-    }
-});
-
-
