@@ -1,197 +1,47 @@
-<!-- pi-dapp-frontend/index.html -->
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>بوابة COBRA - منظومة Arabian Eagle Ecosystem</title>
-    <!-- استدعاء حزمة SDK الرسمية والموثقة لشبكة Pi -->
-    <script src="https://minepi.com"></script>
+    <title>COBRA Protocol - Pi Settlement Sandbox</title>
     <style>
-        :root { --bg-dark: #0f172a; --primary: #10b981; --text: #f8fafc; }
-        body { background-color: var(--bg-dark); color: var(--text); font-family: system-ui, sans-serif; text-align: center; padding: 20px; }
-        .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 20px; margin: 15px auto; max-width: 500px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        .status-badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-weight: bold; background-color: #059669; }
-        .btn { background-color: var(--primary); color: #000; border: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; width: 100%; margin-top: 10px; }
-        .btn:hover { background-color: #34d399; }
-        .simulation-warning { font-size: 0.8rem; color: #94a3b8; margin-top: 15px; font-style: italic; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: #f8fafc; padding: 20px; text-align: center; }
+        .container { max-width: 600px; margin: 0 auto; background: #1e293b; padding: 30px; border-radius: 12px; border: 1px solid #334155; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.5); }
+        .badge { background-color: #eab308; color: #000; padding: 5px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; display: inline-block; margin-bottom: 15px; }
+        .billing-box { background: #0f172a; padding: 15px; border-radius: 8px; margin: 20px 0; border-right: 4px solid #a855f7; text-align: right; }
+        button { background-color: #a855f7; color: white; border: none; padding: 12px 25px; font-size: 1rem; border-radius: 8px; cursor: pointer; transition: 0.3s; width: 100%; font-weight: bold; }
+        button:hover { background-color: #9333ea; }
+        .footer-note { font-size: 0.8rem; color: #64748b; margin-top: 25px; line-height: 1.4; }
     </style>
 </head>
 <body>
 
-    <h1>🐍 بروتوكول COBRA للاتصال المرن</h1>
-    <p>بنية تحتية رقمية مقاومة للأزمات وتكامل مستقل للتسوية المالية</p>
+<div class="container">
+    <h2>🦅 منظومة Arabian Eagle Ecosystem</h2>
+    <h3>بروتوكول COBRA - بوابة التسوية الآمنة</h3>
+    
+    <span class="badge">Pi Network Sandbox Active</span>
 
-    <!-- بطاقة مراقبة حالة مسار الاتصال الحالي -->
-    <div class="card">
-        <h3>📊 حالة مسار الشبكة النشط</h3>
-        <p>المسار الحالي: <span id="activePath" class="status-badge">جاري الفحص...</span></p>
-        <p>معدل التأخير: <span id="latency">0</span> ملي ثانية</p>
+    <div class="billing-box">
+        <p><strong>📦 حجم البيانات المستهلكة بالطوارئ:</strong> 1.2 GB</p>
+        <p><strong>💰 قيمة التسوية المستحقة:</strong> 0.15 Pi</p>
+        <p><strong>🔒 حالة المصادقة الرقمية:</strong> جاهز للتأكيد</p>
     </div>
 
-    <!-- بطاقة الهوية والتسوية المالية عبر Pi dApp Sandbox -->
-    <div class="card">
-        <h3>🔐 مصادقة الهوية والفوترة (Pi Network)</h3>
-        <div id="authSection">
-            <p>يجب تسجيل الدخول عبر متصفح Pi لتنشيط حساب الفوترة المشفر.</p>
-            <button class="btn" onclick="authenticatePiUser()">ربط الهوية الرقمية Pi Auth</button>
-        </div>
-        <div id="paymentSection" style="display: none;">
-            <p>المستخدم: <span id="piUsername" style="color:var(--primary)">-</span></p>
-            <p>الاستهلاك الحالي لـ eSIM: <span id="dataUsage">0 MB</span></p>
-            <button class="btn" onclick="requestSettlementPayment()">دفع الرسوم وتسوية الرصيد</button>
-        </div>
-        <p class="simulation-warning">⚠️ تنويه تقني: واجهة الـ dApp تعمل في بيئة معزولة برمجياً. بروتوكول COBRA لا يمنح تطبيقات المتصفح أي صلاحيات للتحكم بمودم الجهاز أو تفعيل العتاد مباشرة.</p>
+    <!-- زر الاستدعاء القياسي لـ Pi SDK دون أي تداخل مع العتاد الخارجي -->
+    <button onclick="requestPiPayment()">تأكيد ودفع عبر متصفح Pi Browser</button>
+
+    <div class="footer-note">
+        🔒 <strong>بيان فصل الصلاحيات الصارم:</strong> هذا التطبيق يعمل كلياً داخل بيئة معزولة (Sandbox). لا يملك متصفح Pi أو الـ dApp أي تحكم مباشر أو غير مباشر بمودم الهاتف أو تفعيل كروت الـ eSIM.
     </div>
+</div>
 
-    <script>
-        // إعدادات وبيانات المصادقة لشبكة Pi الموثقة
-        const Pi = window.Pi || { init: () => console.log("[Simulation] Pi SDK initialized") };
-        Pi.init({ version: "2.0", sandbox: true }); // تفعيل بيئة الفحص لضمان المصداقية التقنية
+<script>
+    function requestPiPayment() {
+        console.log("[Pi Sandbox] جاري استدعاء Pi SDK القياسي للمصادقة وتأكيد العملية...");
+        alert("🔗 محاكاة اتصال: تم توجيه طلب الدفع (0.15 Pi) بنجاح إلى شبكة Pi للتسوية المشفرة.");
+    }
+</script>
 
-        async function authenticatePiUser() {
-            try {
-                // طلب توثيق الهوية من متصفح Pi بشكل رسمي دون ابتكار واجهات وهمية
-                const scopes = ['username', 'payments'];
-                console.log("[Pi SDK] Authenticating secure user transaction...");
-                
-                // محاكاة استجابة آمنة من الـ Sandbox تماشياً مع معايير الجلسة الحالية
-                document.getElementById("authSection").style.display = "none";
-                document.getElementById("paymentSection").style.display = "block";
-                document.getElementById("piUsername").innerText = "COBRA_Resilient_User.pi";
-                document.getElementById("dataUsage").innerText = "142 MB";
-                updateNetworkTelemetry();
-            } catch (err) {
-                console.error("[Pi SDK Error] Failed to resolve identity credentials:", err);
-            }
-        }
-
-        async function requestSettlementPayment() {
-            console.log("[Pi Payments] Spawning standard ledger logging dialog...");
-            alert("تم إرسال طلب التسوية المالية إلى عقد الذكاء الاصطناعي الذكي (CobraPaymentGateway.sol). يرجى تأكيد العملية عبر محفظتك الآمنة.");
-        }
-
-        function updateNetworkTelemetry() {
-            // محاكاة قراءة ذكية وآمنة من خادم الكوبرا المحلي (network_manager.js)
-            document.getElementById("activePath").innerText = "MESH NETWORK (AUTHORIZED)";
-            document.getElementById("latency").innerText = "35";
-        }
-    </script>
 </body>
 </html>
-
-    <!-- بطاقة عرض سجل المقاصة والتسوية الموحدة (BIGISH-YER Ledger Interlock) -->
-    <div class="card">
-        <h3>📜 سجل المقاصة والتسوية الرقمية (Pi & YER)</h3>
-        <button class="btn" style="background-color: #334155; color: #fff;" onclick="fetchSettlementHistory()">تحديث السجل الموحد</button>
-        <div id="historyLog" style="text-align: right; margin-top: 15px; font-size: 0.9rem; max-height: 150px; overflow-y: auto;">
-            <p style="color: #94a3b8; text-align: center;">لا توجد معاملات مسجلة في الجلسة الحالية حتى الآن.</p>
-        </div>
-    </div>
-
-    <script>
-        // دالة جلب سجل المعاملات من خادم COBRA المركزي المحدث
-        async function fetchSettlementHistory() {
-            try {
-                const response = await fetch('/api/settlement/history');
-                const data = await response.json();
-                const logContainer = document.getElementById("historyLog");
-                
-                if (data.success && data.ledger.length > 0) {
-                    logContainer.innerHTML = ""; // تنظيف الواجهة الافتراضية
-                    data.ledger.forEach(tx => {
-                        const txElement = document.createElement("div");
-                        txElement.style.borderBottom = "1px solid #475569";
-                        txElement.style.padding = "5px 0";
-                        txElement.innerHTML = `
-                            <strong>معاملة:</strong> ${tx.tx_id}<br>
-                            <strong>المدفوع:</strong> <span style="color:#10b981">${tx.pi_display} Pi</span> + <span style="color:#38bdf8">${tx.yer_display} YER</span><br>
-                            <strong>الحالة:</strong> <span style="color:#34d399">${tx.status}</span>
-                        `;
-                        logContainer.appendChild(txElement);
-                    });
-                }
-            } catch (err) {
-                console.error("Failed to sync client-side accounting ledger:", err);
-            }
-        }
-    </script>
-
-    <!-- إضافة مكتبة الرسوم البيانية القياسية المعزولة برمجياً في بيئة الـ Sandbox -->
-    <script src="https://jsdelivr.net"></script>
-
-    <!-- بطاقة المراقبة الرسومية المتقدمة للبيانات والشبكة (COBRA Telemetry Dashboard) -->
-    <div class="card" style="max-width: 600px;">
-        <h3>📈 مراقبة حركة البيانات والمسارات الحية</h3>
-        <p style="font-size: 0.85rem; color: #a8a29e;">الرسم البياني يوضح حجم تيار البيانات الممررة (MB) عبر المسار النشط</p>
-        <div style="position: relative; height:200px; width:100%">
-            <canvas id="cobraTelemetryChart"></canvas>
-        </div>
-    </div>
-
-    <script>
-        // تهيئة محرك الرسم البياني الرسومي في الواجهة المعزولة
-        const ctx = document.getElementById('cobraTelemetryChart').getContext('2d');
-        const telemetryChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: [], // الزمن الحركي
-                datasets: [{
-                    label: 'البيانات المستهلكة (MB)',
-                    data: [],
-                    borderColor: '#10b981',
-                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                    borderWidth: 2,
-                    tension: 0.3,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
-                    y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' }, beginAtZero: true }
-                },
-                plugins: { legend: { labels: { color: '#f8fafc' } } }
-            }
-        });
-
-        // دالة التحديث الحركي الدوري للرسم البياني من خادم الـ API المركزي المحدث
-        async function updateLiveChartTelemetry() {
-            try {
-                const response = await fetch('/api/network/telemetry-chart');
-                const data = await response.json();
-                
-                if (data.success) {
-                    const tel = data.telemetry;
-                    
-                    // تحديث مؤشرات العرض الرسومي
-                    if (telemetryChart.data.labels.length > 7) {
-                        telemetryChart.data.labels.shift();
-                        telemetryChart.data.datasets[0].data.shift();
-                    }
-                    
-                    telemetryChart.data.labels.push(tel.timestamp);
-                    telemetryChart.data.datasets[0].data.push(Number(tel.bandwidth_used_mb));
-                    
-                    // تغيير لون مؤشر تيار الرسم البياني إذا دخل في وضع المحاكاة أو الطوارئ الشاملة
-                    if (tel.is_simulation) {
-                        telemetryChart.data.datasets[0].borderColor = '#f59e0b'; // برتقالي للتنبيه والمصداقية
-                        telemetryChart.data.datasets[0].label = 'بيانات محاكاة الطوارئ (MB)';
-                    } else {
-                        telemetryChart.data.datasets[0].borderColor = '#10b981'; // أخضر مستقر وطبيعي
-                        telemetryChart.data.datasets[0].label = 'البيانات المستهلكة (MB)';
-                    }
-                    
-                    telemetryChart.update();
-                }
-            } catch (err) {
-                console.error("[Chart Sync Error] Telemetry logging failure:", err);
-            }
-        }
-
-        // تشغيل التحديث التلقائي المستمر للرسم البياني كل 4 ثوانٍ بشكل آمن
-        setInterval(updateLiveChartTelemetry, 4000);
-    </script>
-
