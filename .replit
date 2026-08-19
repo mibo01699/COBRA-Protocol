@@ -6,3 +6,4 @@ channel = "stable-23_11"
 
 [deployment]
 run = ["python", "ai_gateway.py"]
+
