@@ -1,9 +1,8 @@
-modules = ["nodejs-20", "python-3.11", "rust"]
-run = "python ai_gateway.py & node esim-billing-engine.js"
+run = "node server/server.js"
+entrypoint = "server/server.js"
 
-[nix]
-channel = "stable-23_11"
+[packager]
+language = "nodejs"
 
-[deployment]
-run = ["python", "ai_gateway.py"]
-
+[languages.nodejs]
+packageManager = "npm"
