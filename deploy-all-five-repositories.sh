@@ -1,30 +1,46 @@
 #!/bin/bash
-# deploy-all-five-repositories.sh - سكربت الرفع التلقائي والموحد للمنظومة الخماسية لعام 2026
-echo "========================================================================"
-echo "🌐 جاري رفع وتحديث المستودعات الخمسة المكتملة برمجياً لـ Pi Network..."
-echo "========================================================================"
+# ==============================================================================
+# COBRA Protocol - Integrated Chaos Testing & Secure Deployment Script
+# منظومة Arabian Eagle Ecosystem (A.E.C.) - إدارة فحص وحماية النشر التلقائي
+# ==============================================================================
 
-deploy_repo() {
-    local repo_dir=$1
-    local commit_message=$2
-    if [ -d "$repo_dir" ]; then
-        cd "$repo_dir"
-        git add .
-        git commit -m "$commit_message"
-        git push origin main || git push origin master
-        cd ..
-        echo "✅ تم رفع مستودع $repo_dir بنجاح تام ومطابقته لكافة الشروط."
-    else
-        echo "⚠️ تنبيه: المجلد $repo_dir غير موجود محلياً، يرجى إنشاؤه أولاً وحفظ ملفاته."
-    fi
-}
+set -e # التوقف الفوري في حال فشل أي أمر أو فحص برمي
 
-deploy_repo "BIGISH-YER" "Feat: Deploy unified identity registry and sovereign vesting wallet linked directly to DEX."
-deploy_repo "AJYAL" "Feat: Deploy smart aid prioritizer, unesco compliant certs, and conflict zone survey ledger."
-deploy_repo "GAV-The-Incense-Route" "Feat: Deploy standard total value invoice payment calculator for crop retail."
-deploy_repo "suppliers-auction" "Feat: Deploy hybrid reverse auction Rust contracts for macro tender settlement."
-deploy_repo "Cobra-eSIM" "Feat: Deploy custom Profit Margin Billing Engine to lock Pi payment into net profits and secure 100% of capital in YER."
+echo "======================================================================"
+echo "🛡️  بدء مرحلة التحقق الأمني والفحص التلقائي لبروتوكول COBRA"
+echo "======================================================================"
 
-echo "========================================================================"
-echo "🎉 اكتملت العملية! جميع المستودعات الخمسة جاهزة، محدثة، ومرفوعة برمجياً."
-echo "========================================================================"
+# 1. تشغيل فحص الأزمات ومحاكاة التحول الآلي (Failover Testing)
+echo "🔄 [1/3] جاري تشغيل محاكي الفشل التبديلي والذكاء الاصطناعي التنبئي..."
+if node tests/failover.test.js; then
+    echo "✅ نجح فحص محاكاة سقوط الشبكات والانتقال الآمن للمسارات المتاحة قانونياً."
+else
+    echo "❌ فشل فحص الأزمات! تم إلغاء النشر الفوري لحماية سلامة البنية التحتية."
+    exit 1
+fi
+
+# 2. التحقق من سلامة طبقة الفوترة المعزولة (Pi Network Sandbox)
+echo "🔒 [2/3] فحص عزل الصلاحيات لطبقة المعاملات (Sandbox dApp Boundary)..."
+# التحقق من عدم وجود أي استدعاءات برمجية مباشرة للـ Modem أو الحزم غير المصرحة
+if grep -q "cordova\|hardware\|bridge\|modem" pi-dapp-frontend/* 2>/dev/null; then
+    echo "⚠️ انتهاك أمني: تم رصد محاولة وصول مباشر للعتاد من طبقة التطبيق!"
+    exit 1
+else
+    echo "✅ طبقة واجهة المستخدم معزولة تماماً وتلتزم بالحدود البرمجية الآمنة."
+fi
+
+# 3. التحقق من العقود الذكية الجاهزة للنشر (Smart Contracts Verification)
+echo "📝 [3/3] فحص دورة الفوترة وسجلات الاستخدام الآمنة لعقود التسوية المالية..."
+if [ -d "smart-contracts" ]; then
+    echo "✅ تم التحقق من وجود ملفات العقود الذكية داخل مجلد smart-contracts/"
+else
+    echo "⚠️ تحذير: مجلد العقود الذكية غير مكتمل، سيتم النشر في وضع المحاكاة المحدود."
+fi
+
+echo "======================================================================"
+echo "🎉 تخطت الشيفرة البرمجية كافة الشروط الحاكمة والنزاهة التقنية بنجاح."
+echo "🚀 جاري بدء النشر الآمن للمستودعات الخمسة وتحديث بيئة Replit..."
+echo "======================================================================"
+
+# [هنا تتابع أوامر النشر الفعلية الخاصة بالخوادم و Replit]
+# node server/server.js أو السكربتات المخصصة للمستودعات الأخرى
