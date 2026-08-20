@@ -1,0 +1,58 @@
+{
+  "ar": {
+    "title": "بروتوكول COBRA",
+    "subtitle": "بنية تحتية مرنة للاتصالات وحالات الطوارئ",
+    "system_status": "حالة النظام",
+    "simulation_mode": "وضع المحاكاة نشط",
+    "failover_triggered": "تم تفعيل التحول التلقائي للمسار البديل",
+    "security_boundary": "حدود صلاحيات شبكة Pi مؤمنة ومعزولة"
+  },
+  "en": {
+    "title": "COBRA Protocol",
+    "subtitle": "Crisis-Resilient Communication Infrastructure",
+    "system_status": "System Status",
+    "simulation_mode": "Simulation Mode Active",
+    "failover_triggered": "Automated Failover Triggered",
+    "security_boundary": "Pi Network Security Boundary Verified"
+  },
+  "zh": {
+    "title": "COBRA 协议",
+    "subtitle": "具备危机 political 弹性的通信基础设施",
+    "system_status": "系统状态",
+    "simulation_mode": "模拟模式已激活",
+    "failover_triggered": "已触发自动 failover",
+    "security_boundary": "Pi Network 安全边界已验证"
+  },
+  "vi": {
+    "title": "Giao thức COBRA",
+    "subtitle": "Cơ sở hạ tầng truyền thông phục hồi sau khủng hoảng",
+    "system_status": "Trạng thái hệ thống",
+    "simulation_mode": "Chế độ mô phỏng đang hoạt động",
+    "failover_triggered": "Đã kích hoạt chuyển đổi dự phòng tự động",
+    "security_boundary": "Ranh giới bảo mật mạng Pi đã được xác minh"
+  },
+  "ko": {
+    "title": "COBRA 프로토콜",
+    "subtitle": "위기 복구 능력을 갖춘 통신 인프라",
+    "system_status": "시스템 상태",
+    "simulation_mode": "시뮬레이션 모드 활성화됨",
+    "failover_triggered": "자동 페일오버 작동됨",
+    "security_boundary": "Pi Network 보안 경계 확인됨"
+  },
+  "es": {
+    "title": "Protocolo COBRA",
+    "subtitle": "Infraestructura de Comunicación Resiliente ante Crisis",
+    "system_status": "Estado del Sistema",
+    "simulation_mode": "Modo de Simulación Activo",
+    "failover_triggered": "Conmutación por Error Automática Activada",
+    "security_boundary": "Límite de Seguridad de Pi Network Verificado"
+  },
+  "fr": {
+    "title": "Protocole COBRA",
+    "subtitle": "Infrastructure de Communication Résiliente aux Crises",
+    "system_status": "Statut du Système",
+    "simulation_mode": "Mode Simulation Actif",
+    "failover_triggered": "Basculement Automatique Déclenché",
+    "security_boundary": "Limite de Sécurité Pi Network Vérifiée"
+  }
+}
