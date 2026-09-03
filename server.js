@@ -6,7 +6,7 @@ app.use(cors());
 app.use(express.json());
 
 app.get('/api/health', (req, res) => {
-    res.json({ status: 'online', service: 'COBRA-Protocol', version: '1.0.0' });
+    res.json({ status: 'online', service: 'COBRA-Protocol' });
 });
 
 app.get('/', (req, res) => {
