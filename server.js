@@ -13,10 +13,8 @@ app.get('/', (req, res) => {
     res.json({ message: '🦅 COBRA-Protocol API is running' });
 });
 
-// ✅ تصدير التطبيق لـ Vercel والاختبارات
 module.exports = app;
 
-// ✅ تشغيل الخادم محلياً فقط
 if (require.main === module) {
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
