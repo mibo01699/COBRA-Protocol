@@ -9,9 +9,10 @@ describe('COBRA API Tests', () => {
         expect(response.body.service).toBe('COBRA-Protocol');
     });
 
-    test('GET / should return API message', async () => {
+    test('GET / should return HTML page', async () => {
         const response = await request(app).get('/');
         expect(response.status).toBe(200);
-        expect(response.body.message).toContain('COBRA-Protocol');
+        expect(response.type).toBe('text/html');
+        expect(response.text).toContain('COBRA Protocol');
     });
 });
