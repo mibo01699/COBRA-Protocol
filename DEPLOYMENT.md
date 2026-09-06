@@ -34,4 +34,6 @@ python ai-predictive-engine/ratio_calculator.py
 للتحقق من سلامة العقد الذكي وقفل الـ Anti-Double-Dipping التزامني، نفذ أمر الفحص:
 ```bash
 npx hardhat test tests/payload_injector.test.js
-```
+``
+> **⚠️ Important:** This is a **sandbox/testnet-only prototype**.  
+> No mainnet deployment or official partnership is claimed.
