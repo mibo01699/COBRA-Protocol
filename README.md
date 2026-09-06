@@ -38,3 +38,6 @@ node tests/failover.test.js
 ---
 
 بروتوكول COBRA (COBRA Protocol)Crisis-Resilient Open Broadband & Autonomous Relay Architectureبنية تحتية رقمية مفتوحة ومعيارية لتنسيق مسارات الاتصال وتقليل نقاط الفشل في حالات الطوارئ، محمية ضمن منظومة Arabian Eagle Ecosystem (A.E.C.).🧭 المبادئ الحاكمة والنزاهة التقنيةمرونة الاتصال: يقتصر على تنسيق الشبكات المتاحة قانونياً ولا يسمح بالتحايل على مشغلي الاتصالات.فصل الصلاحيات: تنحصر مسؤولية شبكة Pi في طبقة التطبيق المعزولة (Sandbox dApp) دون أي تحكم مباشر بعتاد الهاتف أو الـ eSIM.الواقعية: تفعيل "بيئة محاكاة" (Simulation Mode) لضمان دقة النظام دون تداخل مع الأجهزة.لتشغيل دورة الفحص الشاملة، يمكنك استخدام الأمر المخصص في المستودع.
+
+> **⚠️ Important:** This is a **sandbox/testnet-only prototype**.  
+> It does **NOT** claim official certification or funding from any organization.
