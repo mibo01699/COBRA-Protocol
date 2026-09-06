@@ -1,16 +1,16 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
+// Serve static files from pi-dapp-frontend directory
+app.use(express.static(path.join(__dirname, 'pi-dapp-frontend')));
+
 app.get('/api/health', (req, res) => {
     res.json({ status: 'online', service: 'COBRA-Protocol', version: '1.0.0' });
-});
-
-app.get('/', (req, res) => {
-    res.json({ message: '🦅 COBRA-Protocol API is running' });
 });
 
 module.exports = app;
